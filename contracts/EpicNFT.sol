@@ -3,7 +3,11 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "hardhat/console.sol";
+import 'base64-sol/base64.sol';
+
+
 
 
 contract EpicNFT is ERC721URIStorage{
@@ -11,27 +15,85 @@ contract EpicNFT is ERC721URIStorage{
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
+      string startSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="500px" height="500px" ><defs><linearGradient id="lgrad" x1="0%" y1="50%" x2="100%" y2="50%" >';
+      string endSvg = '</linearGradient></defs><rect x="0" y="0" width="100%" height="100%" fill="url(#lgrad)"/></svg>';
+
+
+    uint randNonce = 0;
+
   // We need to pass the name of our NFTs token and its symbol.
   constructor() ERC721 ("renzoNFT", "SQUARE") {
     console.log("This is my contract running");
   }
 
-  // A function our user will hit to get their NFT.
+  function randomRgb() public  returns (uint256) {
+    uint random = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, randNonce))) % 255;
+    randNonce++;
+    return random;
+  }
+
+  function append(string memory start, string memory color1, string memory
+                  color2, string memory color3, string memory end) internal pure returns (string memory) {
+    return string(abi.encodePacked(start, color1,",", color2,",", color3, end));
+
+}
+
+function generateRandomLine (string memory percentage) internal  returns (string memory){
+
+    string memory firstColor = Strings.toString(randomRgb());
+    string memory secondColor = Strings.toString(randomRgb());
+    string memory thirdColor = Strings.toString(randomRgb());
+
+    string memory firstLine = '<stop offset="';
+    string memory middleLine = '%" style="stop-color:rgb(';
+    string memory endLine = ');stop-opacity:1.00" />';
+    
+    string memory  withPercentage =
+      string(abi.encodePacked(firstLine,percentage,middleLine));
+
+    return append(withPercentage,firstColor,secondColor,thirdColor,endLine);
+}
+
   function makeNFT() public {
-     // Get the current tokenId, this starts at 0.
     uint256 newItemId = _tokenIds.current();
 
-     // Actually mint the NFT to the sender using msg.sender.
+
+    string memory line1 = generateRandomLine("0");
+    string memory line2 = generateRandomLine("50");
+    string memory line3 = generateRandomLine("100");
+
+    string memory  result = string(abi.encodePacked(startSvg,line1,line2,line3,endSvg));
+
+  string memory json = Base64.encode(
+        bytes(
+            string(
+                abi.encodePacked(
+                    '{"name": "gradients names", "description": "A highly acclaimed collection of gradients squares .", "image": "data:image/svg+xml;base64,',
+                    Base64.encode(bytes(result)),
+                    '"}'
+                )
+            )
+        )
+    );
+
+    string memory finalTokenUri = string(
+        abi.encodePacked("data:application/json;base64,", json)
+    );
+
+    console.log("\n--------------------");
+    console.log(finalTokenUri);
+    console.log("--------------------\n");
+
+
+
     _safeMint(msg.sender, newItemId);
 
-    // Set the NFTs data.
-    _setTokenURI(newItemId, "https://jsonkeeper.com/b/P3PU");
-
-    console.log("An NFT w/ ID %s has been minted to %s", newItemId, msg.sender);
+    _setTokenURI(newItemId, finalTokenUri);
 
 
-    // Increment the counter for when the next NFT is minted.
+
     _tokenIds.increment();
+    console.log("An NFT w/ ID %s has been minted to %s", newItemId, msg.sender);
   }
 
 
