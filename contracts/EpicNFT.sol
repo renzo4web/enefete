@@ -8,15 +8,13 @@ import "hardhat/console.sol";
 import 'base64-sol/base64.sol';
 
 
-
-
 contract EpicNFT is ERC721URIStorage{
 
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
-      string startSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="500px" height="500px" ><defs><linearGradient id="lgrad" x1="0%" y1="50%" x2="100%" y2="50%" >';
-      string endSvg = '</linearGradient></defs><rect x="0" y="0" width="100%" height="100%" fill="url(#lgrad)"/></svg>';
+      string startSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" ><defs><linearGradient id="a" x1="0%" y1="50%" x2="100%" y2="50%" >';
+      string endSvg = '<animateTransform attributeName="gradientTransform" type="translate" from="-1 0" to="1 0" begin="0s" dur="1.5s" repeatCount="indefinite"/></linearGradient></defs><path style="fill:url(#a)" d="M-100-100h300v300h-300z"/></svg>';
 
 
     uint randNonce = 0;
@@ -63,6 +61,7 @@ function generateRandomLine (string memory percentage) internal  returns (string
     string memory line3 = generateRandomLine("100");
 
     string memory  result = string(abi.encodePacked(startSvg,line1,line2,line3,endSvg));
+
 
   string memory json = Base64.encode(
         bytes(
