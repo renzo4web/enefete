@@ -30,11 +30,9 @@ contract EpicNFT is ERC721URIStorage{
     return random;
   }
 
-  function append(string memory start, string memory color1, string memory
-                  color2, string memory color3, string memory end) internal pure returns (string memory) {
+  function append(string memory start, string memory color1, string memory color2, string memory color3, string memory end) internal pure returns (string memory) {
     return string(abi.encodePacked(start, color1,",", color2,",", color3, end));
-
-}
+  }
 
 function generateRandomLine (string memory percentage) internal  returns (string memory){
 
