@@ -30,7 +30,7 @@ import {
   useDisclosure,
   Divider,
 } from "@chakra-ui/react";
-import EpicNFTAbi from "../../../artifacts/contracts/EpicNFT.sol/EpicNFT.json";
+import EpicNFTAbi from "../utils/EpicNFT.abi.json";
 import { useReadOnlyProvider } from "@web3-ui/hooks";
 // eslint-disable-next-line node/no-missing-import
 import { trimInput } from "../utils/helpers";
