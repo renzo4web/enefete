@@ -19,6 +19,10 @@ contract EpicNFT is ERC721URIStorage{
 
     uint randNonce = 0;
 
+
+  //Event
+  event NewEpicNFTMinted(address sender, uint256 tokenId);
+
   // We need to pass the name of our NFTs token and its symbol.
   constructor() ERC721 ("renzoNFT", "SQUARE") {
     console.log("This is my contract running");
@@ -91,6 +95,9 @@ function generateRandomLine (string memory percentage) internal  returns (string
 
     _tokenIds.increment();
     console.log("An NFT w/ ID %s has been minted to %s", newItemId, msg.sender);
+
+
+    emit NewEpicNFTMinted(msg.sender, newItemId);
   }
 
 

@@ -1,146 +1,254 @@
-import React, { useState, useEffect } from "react";
-//import { Greeter } from '../types/contracts';
-//import GreeterABI from '../abis/Greeter.json';
-import { ConnectWallet, useWallet, useWriteContract } from "@web3-ui/core";
-//import { NFTGallery } from '@web3-ui/components';
+import React, { useState, useEffect, useRef } from "react";
+import { EpicNFT } from "../../../typechain/EpicNFT";
+import {
+  ConnectWallet,
+  useWallet,
+  useWriteContract,
+  useTransaction,
+} from "@web3-ui/core";
+import { NFT, NFTGallery } from "@web3-ui/components";
 import { ethers } from "ethers";
-import { Box, Button, Container, Heading, Link, Text } from "@chakra-ui/react";
+import {
+  Badge,
+  Box,
+  Button,
+  Center,
+  Container,
+  Fade,
+  Heading,
+  Input,
+  Link,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Progress,
+  Text,
+  useToast,
+  Tooltip,
+  useDisclosure,
+} from "@chakra-ui/react";
+import EpicNFTAbi from "../../../artifacts/contracts/EpicNFT.sol/EpicNFT.json";
+import { useReadOnlyProvider } from "@web3-ui/hooks";
+import { trimInput } from "../utils/helpers";
+
+const CONTRACT_ADDRESS = "0x06c21852E64639F30585865d12a5Be1AB1C55C30";
 
 function Home() {
   // State / Props
+  const toast = useToast();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
   const [address, setAddress] = useState("");
-  const [newGreeting, setNewGreeting] = useState("");
-  const [retrievedGreeting, setRetrivedGreeting] = useState("");
+  const [words, setWords] = useState("");
+  const provider = useReadOnlyProvider(
+    "https://eth-rinkeby.alchemyapi.io/v2/9PV3-6R3ofq4XeN_1gAB2SNEK2IKpY04"
+  );
+  const [tokenId, setTokenId] = useState<number | null>(null);
+  const [showGallery, setShowGallery] = useState(false);
   const [nftGallery, setNftGallery] = useState<any>(null);
   const {
     connected,
-    provider,
     correctNetwork,
     switchToCorrectNetwork,
     connection,
+    disconnectWallet,
   } = useWallet();
-  //const [greeterContract, isReady] = useWriteContract<Greeter>(
-  //// Rinkeby
-  //"0x7e1D33FcF1C6b6fd301e0B7305dD40E543CF7135",
-  //GreeterABI
-  //);
+  const [nftContract, isReady] = useWriteContract<EpicNFT>(
+    CONTRACT_ADDRESS,
+    EpicNFTAbi.abi
+  );
+  const [execute, loading, error] = useTransaction(nftContract?.makeNFT);
+  const toastId = useRef("tost");
 
   // Hooks
   useEffect(() => {
     console.log("correctNetwork", correctNetwork);
-  }, [correctNetwork]);
+    console.log("contracts", nftContract);
+    console.log("address", address);
+  }, [correctNetwork, address]);
+
+  useEffect(() => {
+    nftContract?.on("NewEpicNFTMinted", (from, tokenId) => {
+      console.log(from, tokenId.toNumber());
+      setTokenId(tokenId);
+      alert(
+        `Hey there! We've minted your NFT and sent it to your wallet. It may be blank right now. It can take a max of 10 min to show up on OpenSea. Here's the link: https://testnets.opensea.io/assets/${CONTRACT_ADDRESS}/${tokenId.toNumber()}`
+      );
+    });
+  }, [isReady]);
 
   // Functions
   const onChangeInputAddress = (event: React.ChangeEvent<HTMLInputElement>) => {
     setAddress(event.target.value);
   };
 
-  const onSubmitForm = (event: React.ChangeEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setNftGallery(
-      <NFTGallery
-        address={address}
-        gridWidth={2}
-        web3Provider={provider as ethers.providers.Web3Provider}
-      />
-    );
+  const handleChangeWords = (event) => {
+    setWords(event.target.value);
   };
 
-  //const onClickGreet = async () => {
-  //if (greeterContract && isReady) {
-  //const response = await greeterContract.greet();
-  //console.log("setGreeting", response);
-  //setRetrivedGreeting(response);
-  //}
-  //};
+  const onSubmitForm = async () => {
+    try {
+      // TODO: add word
+      onClose();
+      await execute([]);
+      setWords("");
+    } catch (error) {
+      console.warn(error);
+    }
+  };
 
-  //const onClickSetGreet = async () => {
-  //if (greeterContract && isReady) {
-  //const response = await greeterContract.setGreeting(newGreeting);
-  //console.log("greet", response);
-  //setNewGreeting("");
-  //}
-  //};
+  const onClickMint = async () => {
+    if (nftContract && isReady) {
+      const r = await execute([]);
+      console.log(r);
+    }
+  };
 
   const onClickSwitchToCorrectNetwork = () => {
     switchToCorrectNetwork();
   };
-
-  //const onChangeGreeting = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //setNewGreeting(event.target.value);
-  //};
 
   // Renders
   return (
     <Container
       maxW="container.lg"
       centerContent
-      maxHeight="100vh"
+      py="10"
       justifyContent="center"
-      height="100vh"
     >
+      <Badge colorScheme="purple" variant="subtle" rounded="md">
+        ⚠️ Contract functions to be used on network: <code>rinkeby</code>{" "}
+      </Badge>
       <Box alignItems="center" mt="auto">
-        <Heading>NFT Gradient</Heading>
+        {loading && <Progress size="lg" isIndeterminate />}
+        <Heading
+          bgGradient="linear(to-l, #7928CA, #FF0080)"
+          bgClip="text"
+          fontSize="6xl"
+          fontWeight="extrabold"
+        >
+          NFT Gradient
+        </Heading>
         {connected ? (
-          <small>Click the button again to disconnect the wallet.</small>
+          <Badge variant="outline">
+            Click the button again to disconnect the wallet.
+          </Badge>
         ) : null}
         <Box>
           <ConnectWallet />
         </Box>
 
+        {error &&
+          toast({
+            title: "Transaction failed",
+            description: `${error?.message}`,
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          })}
+
         {!correctNetwork && (
-          <p>
-            <button onClick={onClickSwitchToCorrectNetwork}>
-              Switch to Mainnet
-            </button>
-          </p>
+          <Box>
+            <Tooltip label="You are on the wrong network change Rinkeby">
+              <Button
+                colorScheme="purple"
+                variant="outline"
+                onClick={onClickSwitchToCorrectNetwork}
+              >
+                Switch to Rinkeby
+              </Button>
+            </Tooltip>
+          </Box>
         )}
 
-        {connected ? (
-          <Box>
-            <p>
-              <strong>Current Network:</strong>{" "}
-              <code>{connection?.network ?? "Unknown"}</code>
-            </p>
-            <blockquote>
-              ⚠️ Contract functions to be used on network: <code>rinkeby</code>{" "}
-            </blockquote>
-            <p>
-              <input
-                type="text"
-                placeholder="New Greeting"
-                value={newGreeting}
-                //onChange={onChangeGreeting}
-              />
-            </p>
-            <p>{/*<button onClick={onClickSetGreet}>Set Greeting</button>*/}</p>
-            <p>{/*<button onClick={onClickGreet}>Greet</button>*/}</p>
-          </Box>
+        {connected && correctNetwork && !loading ? (
+          <Fade in={connected}>
+            <Box>
+              <p>
+                <strong>Current Network:</strong>{" "}
+                <code>{connection?.network ?? "Unknown"}</code>
+              </p>
+              <Center>
+                <Button onClick={onOpen} size="lg" colorScheme="blue">
+                  Mint
+                </Button>
+
+                <Modal
+                  isCentered
+                  onClose={onClose}
+                  isOpen={isOpen}
+                  motionPreset="slideInBottom"
+                >
+                  <ModalOverlay />
+                  <ModalContent>
+                    <ModalHeader margin="3%">
+                      Write three words that come to your mind
+                      {words}
+                    </ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                      <Input
+                        isInvalid={trimInput(words).split(" ").length > 3}
+                        value={words}
+                        onChange={handleChangeWords}
+                      />
+                    </ModalBody>
+                    <ModalFooter>
+                      <Button colorScheme="gray" mr={3} onClick={onClose}>
+                        Close
+                      </Button>
+                      {words.length > 0 && (
+                        <Button
+                          variant="outline"
+                          colorScheme="purple"
+                          onClick={onSubmitForm}
+                        >
+                          Mint
+                        </Button>
+                      )}
+                    </ModalFooter>
+                  </ModalContent>
+                </Modal>
+
+                <Button
+                  ml="5%"
+                  size="lg"
+                  onClick={() => setShowGallery((b) => !b)}
+                  colorScheme={showGallery ? "gray" : "teal"}
+                >
+                  {showGallery ? "Hide my NFT's" : "Show my NFT's"}
+                </Button>
+              </Center>
+              {!!tokenId && (
+                <NFT
+                  contractAddress={CONTRACT_ADDRESS}
+                  tokenId={tokenId.toString()}
+                  isTestnet
+                  size="md"
+                />
+              )}
+            </Box>
+          </Fade>
         ) : null}
-
-        <h1>Demo</h1>
-
-        <p>Type in an address to view their NFTs</p>
-        <form onSubmit={onSubmitForm}>
-          <p>
-            <input
-              disabled={!connected}
-              type="text"
-              placeholder="Address"
-              value={address}
-              onChange={onChangeInputAddress}
-            />
-          </p>
-          <p>
-            <button type="submit" disabled={!connected}>
-              {connected ? "Search" : "Connect your wallet first!"}
-            </button>
-          </p>
-        </form>
       </Box>
 
+      {!!showGallery && (
+        <Box>
+          <NFTGallery
+            address={connection.userAddress}
+            web3Provider={provider}
+            gridWidth={4}
+            isTestnet
+          />
+        </Box>
+      )}
+
       <Box mt="auto" mb="5%">
-        <Heading as="h3" size="lg">
+        <Heading as="h4" size="lg">
           tinkering by{" "}
           <Link color="teal.400" href="https://github.com/renzo4web" isExternal>
             @ren
