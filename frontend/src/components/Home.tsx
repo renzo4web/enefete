@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { EpicNFT } from "../../../typechain/EpicNFT";
+
 import {
   ConnectWallet,
   useWallet,
   useWriteContract,
   useTransaction,
 } from "@web3-ui/core";
+// eslint-disable-next-line node/no-extraneous-import
 import { NFT, NFTGallery } from "@web3-ui/components";
 import { ethers } from "ethers";
 import {
@@ -34,6 +35,7 @@ import {
 } from "@chakra-ui/react";
 import EpicNFTAbi from "../../../artifacts/contracts/EpicNFT.sol/EpicNFT.json";
 import { useReadOnlyProvider } from "@web3-ui/hooks";
+// eslint-disable-next-line node/no-missing-import
 import { trimInput } from "../utils/helpers";
 
 const CONTRACT_ADDRESS = "0xef6cD47d5516A3bE7D868aCaAC58Eaae3C07c597";
@@ -49,7 +51,7 @@ function Home() {
   const [showGallery, setShowGallery] = useState(false);
   const { connected, correctNetwork, switchToCorrectNetwork, connection } =
     useWallet();
-  const [nftContract, isReady] = useWriteContract<EpicNFT>(
+  const [nftContract, isReady] = useWriteContract(
     CONTRACT_ADDRESS,
     EpicNFTAbi.abi
   );
