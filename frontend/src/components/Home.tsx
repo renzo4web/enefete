@@ -1,5 +1,5 @@
+/* eslint-disable node/no-unpublished-import */
 import React, { useState, useEffect, useRef } from "react";
-
 import {
   ConnectWallet,
   useWallet,
@@ -8,7 +8,6 @@ import {
 } from "@web3-ui/core";
 // eslint-disable-next-line node/no-extraneous-import
 import { NFT, NFTGallery } from "@web3-ui/components";
-import { ethers } from "ethers";
 import {
   Badge,
   Box,
@@ -27,11 +26,9 @@ import {
   ModalHeader,
   ModalOverlay,
   Progress,
-  useToast,
   Tooltip,
   useDisclosure,
   Divider,
-  Text,
 } from "@chakra-ui/react";
 import EpicNFTAbi from "../../../artifacts/contracts/EpicNFT.sol/EpicNFT.json";
 import { useReadOnlyProvider } from "@web3-ui/hooks";
@@ -41,7 +38,6 @@ import { trimInput } from "../utils/helpers";
 const CONTRACT_ADDRESS = "0xef6cD47d5516A3bE7D868aCaAC58Eaae3C07c597";
 
 function Home() {
-  const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [words, setWords] = useState("");
   const provider = useReadOnlyProvider(
