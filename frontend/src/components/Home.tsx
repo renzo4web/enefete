@@ -26,50 +26,34 @@ import {
   ModalHeader,
   ModalOverlay,
   Progress,
-  Text,
   useToast,
   Tooltip,
   useDisclosure,
+  Divider,
+  Text,
 } from "@chakra-ui/react";
 import EpicNFTAbi from "../../../artifacts/contracts/EpicNFT.sol/EpicNFT.json";
 import { useReadOnlyProvider } from "@web3-ui/hooks";
 import { trimInput } from "../utils/helpers";
 
-const CONTRACT_ADDRESS = "0x06c21852E64639F30585865d12a5Be1AB1C55C30";
+const CONTRACT_ADDRESS = "0xef6cD47d5516A3bE7D868aCaAC58Eaae3C07c597";
 
 function Home() {
-  // State / Props
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
-
-  const [address, setAddress] = useState("");
   const [words, setWords] = useState("");
   const provider = useReadOnlyProvider(
     "https://eth-rinkeby.alchemyapi.io/v2/9PV3-6R3ofq4XeN_1gAB2SNEK2IKpY04"
   );
   const [tokenId, setTokenId] = useState<number | null>(null);
   const [showGallery, setShowGallery] = useState(false);
-  const [nftGallery, setNftGallery] = useState<any>(null);
-  const {
-    connected,
-    correctNetwork,
-    switchToCorrectNetwork,
-    connection,
-    disconnectWallet,
-  } = useWallet();
+  const { connected, correctNetwork, switchToCorrectNetwork, connection } =
+    useWallet();
   const [nftContract, isReady] = useWriteContract<EpicNFT>(
     CONTRACT_ADDRESS,
     EpicNFTAbi.abi
   );
-  const [execute, loading, error] = useTransaction(nftContract?.makeNFT);
-  const toastId = useRef("tost");
-
-  // Hooks
-  useEffect(() => {
-    console.log("correctNetwork", correctNetwork);
-    console.log("contracts", nftContract);
-    console.log("address", address);
-  }, [correctNetwork, address]);
+  const [execute, loading] = useTransaction(nftContract?.makeNFT);
 
   useEffect(() => {
     nftContract?.on("NewEpicNFTMinted", (from, tokenId) => {
@@ -81,30 +65,19 @@ function Home() {
     });
   }, [isReady]);
 
-  // Functions
-  const onChangeInputAddress = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setAddress(event.target.value);
-  };
-
-  const handleChangeWords = (event) => {
+  const handleChangeWords = (event: any) => {
     setWords(event.target.value);
   };
 
   const onSubmitForm = async () => {
     try {
       // TODO: add word
+      setTokenId(null);
       onClose();
-      await execute([]);
+      await execute(words.toUpperCase());
       setWords("");
     } catch (error) {
       console.warn(error);
-    }
-  };
-
-  const onClickMint = async () => {
-    if (nftContract && isReady) {
-      const r = await execute([]);
-      console.log(r);
     }
   };
 
@@ -123,6 +96,13 @@ function Home() {
       <Badge colorScheme="purple" variant="subtle" rounded="md">
         ⚠️ Contract functions to be used on network: <code>rinkeby</code>{" "}
       </Badge>
+      {!!connection.network && (
+        <p>
+          <strong>Current Network:</strong>{" "}
+          <code>{connection?.network ?? "Unknown"}</code>
+        </p>
+      )}
+
       <Box alignItems="center" mt="auto">
         {loading && <Progress size="lg" isIndeterminate />}
         <Heading
@@ -134,22 +114,15 @@ function Home() {
           NFT Gradient
         </Heading>
         {connected ? (
-          <Badge variant="outline">
-            Click the button again to disconnect the wallet.
-          </Badge>
+          <Center>
+            <Badge variant="outline" my="5%">
+              Click the button again to disconnect the wallet.
+            </Badge>
+          </Center>
         ) : null}
-        <Box>
+        <Center my="5%">
           <ConnectWallet />
-        </Box>
-
-        {error &&
-          toast({
-            title: "Transaction failed",
-            description: `${error?.message}`,
-            status: "error",
-            duration: 5000,
-            isClosable: true,
-          })}
+        </Center>
 
         {!correctNetwork && (
           <Box>
@@ -168,10 +141,6 @@ function Home() {
         {connected && correctNetwork && !loading ? (
           <Fade in={connected}>
             <Box>
-              <p>
-                <strong>Current Network:</strong>{" "}
-                <code>{connection?.network ?? "Unknown"}</code>
-              </p>
               <Center>
                 <Button onClick={onOpen} size="lg" colorScheme="blue">
                   Mint
@@ -186,8 +155,8 @@ function Home() {
                   <ModalOverlay />
                   <ModalContent>
                     <ModalHeader margin="3%">
-                      Write three words that come to your mind
-                      {words}
+                      Write three words that come to your mind{" "}
+                      <Badge colorScheme="purple">{words}</Badge>
                     </ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
@@ -223,25 +192,29 @@ function Home() {
                   {showGallery ? "Hide my NFT's" : "Show my NFT's"}
                 </Button>
               </Center>
-              {!!tokenId && (
-                <NFT
-                  contractAddress={CONTRACT_ADDRESS}
-                  tokenId={tokenId.toString()}
-                  isTestnet
-                  size="md"
-                />
+              {!!tokenId && connected && (
+                <Center my="5%">
+                  <NFT
+                    contractAddress={CONTRACT_ADDRESS}
+                    tokenId={tokenId.toString()}
+                    isTestnet
+                    size="md"
+                  />
+                </Center>
               )}
             </Box>
           </Fade>
         ) : null}
       </Box>
 
-      {!!showGallery && (
-        <Box>
+      <Divider variant="dashed" my="5%" />
+
+      {!!showGallery && connected && (
+        <Box my="2%">
           <NFTGallery
-            address={connection.userAddress}
+            address={connection?.userAddress!}
             web3Provider={provider}
-            gridWidth={4}
+            gridWidth={3}
             isTestnet
           />
         </Box>
