@@ -213,6 +213,7 @@ function Home() {
         <Box my="2%">
           <NFTGallery
             address={connection?.userAddress!}
+            // @ts-ignore
             web3Provider={provider}
             gridWidth={3}
             isTestnet
