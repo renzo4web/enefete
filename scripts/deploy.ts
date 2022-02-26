@@ -6,14 +6,6 @@ async function main() {
 
   await nftContract.deployed();
   console.log("Contract deployed to:", nftContract.address);
-
-  let txn = await nftContract.makeNFT();
-  await txn.wait();
-  console.log("Minted NFT #1");
-
-  txn = await nftContract.makeNFT();
-  await txn.wait();
-  console.log("Minted NFT #2");
 }
 
 main().catch((error) => {

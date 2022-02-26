@@ -54,7 +54,7 @@ function generateRandomLine (string memory percentage) internal  returns (string
     return append(withPercentage,firstColor,secondColor,thirdColor,endLine);
 }
 
-  function makeNFT() public {
+  function makeNFT(  string memory words ) public {
     uint256 newItemId = _tokenIds.current();
 
 
@@ -62,14 +62,17 @@ function generateRandomLine (string memory percentage) internal  returns (string
     string memory line2 = generateRandomLine("50");
     string memory line3 = generateRandomLine("100");
 
-    string memory  result = string(abi.encodePacked(startSvg,line1,line2,line3,endSvg));
+    string memory result = string(abi.encodePacked(startSvg,line1,line2,line3,endSvg));
+    string memory nftName = string(abi.encodePacked("Gradient: ", words));
 
 
-  string memory json = Base64.encode(
+    string memory json = Base64.encode(
         bytes(
             string(
                 abi.encodePacked(
-                    '{"name": "gradients names", "description": "A highly acclaimed collection of gradients squares .", "image": "data:image/svg+xml;base64,',
+                    '{"name": "',
+                    nftName,
+                    '", "description": "A highly acclaimed collection of gradients.", "image": "data:image/svg+xml;base64,',
                     Base64.encode(bytes(result)),
                     '"}'
                 )
@@ -77,20 +80,20 @@ function generateRandomLine (string memory percentage) internal  returns (string
         )
     );
 
+
     string memory finalTokenUri = string(
         abi.encodePacked("data:application/json;base64,", json)
     );
+
 
     console.log("\n--------------------");
     console.log(finalTokenUri);
     console.log("--------------------\n");
 
 
-
     _safeMint(msg.sender, newItemId);
 
     _setTokenURI(newItemId, finalTokenUri);
-
 
 
     _tokenIds.increment();
