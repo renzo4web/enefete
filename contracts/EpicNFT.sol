@@ -24,7 +24,7 @@ contract EpicNFT is ERC721URIStorage{
   event NewEpicNFTMinted(address sender, uint256 tokenId);
 
   // We need to pass the name of our NFTs token and its symbol.
-  constructor() ERC721 ("renzoNFT", "SQUARE") {
+  constructor() payable ERC721 ("renzoNFT", "SQUARE") {
     console.log("This is my contract running");
   }
 
