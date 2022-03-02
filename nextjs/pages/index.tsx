@@ -111,16 +111,18 @@ export default function Home() {
         >
           NFT Gradient
         </Heading>
-        {connected ? (
+        {connected && !loading ? (
           <Center>
             <Badge variant="outline" my="5%">
               Click the button again to disconnect the wallet.
             </Badge>
           </Center>
         ) : null}
-        <Center my="5%">
-          <ConnectWallet />
-        </Center>
+        {!loading && (
+          <Center my="5%">
+            <ConnectWallet />
+          </Center>
+        )}
 
         {!correctNetwork && (
           <Box>
